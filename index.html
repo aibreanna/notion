@@ -10,8 +10,8 @@
     }
     .calendar {
       display: grid;
-      grid-template-columns: 20px repeat(7, 1fr); /* extra column for week numbers */
-      gap: 1px;
+      grid-template-columns: 60px repeat(7, 1fr); /* extra column for week numbers */
+      gap: 5px;
       max-width: 700px;
       margin: auto;
     }
@@ -19,11 +19,12 @@
       padding: 10px;
       border: 0px solid #ccc;
       border-radius: 4px;
+      background: #f0efeb; /* subtle daily shading */
       transition: background 0.2s, color 0.2s;
     }
     .weekday {
       font-weight: bold;
-      background: #f0f0f0;
+      background: #333;
     }
     .weeknum {
       font-weight: bold;
@@ -53,7 +54,7 @@
     }
     .day.today {
       background: #0070f3;
-      color: white;
+      /* color: white; */
       font-weight: bold;
     }
     .day.today a {
