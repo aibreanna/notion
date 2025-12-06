@@ -1,103 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Dynamic Notion Calendar Widget</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-    }
+    body { font-family: Arial, sans-serif; text-align: center; }
     .calendar {
       display: grid;
-      grid-template-columns: 60px repeat(7, 1fr); /* extra column for week numbers */
+      grid-template-columns: 60px repeat(7, 1fr);
       gap: 5px;
       max-width: 700px;
       margin: auto;
     }
     .day, .empty, .weekday, .weeknum {
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
+      padding: 10px; border: 1px solid #ccc; border-radius: 4px;
       transition: background 0.2s, color 0.2s;
     }
-    .weekday {
-      font-weight: bold;
-      background: #f0efeb;
-    }
-    .weeknum {
-      font-weight: bold;
-      background: #f0efeb;
-      text-align: center;
-    }
-    .weeknum a {
-      text-decoration: none;
-      color: #2a5d69;
-    }
-    .weeknum:hover {
-      background: #0070f3;
-    }
-    .weeknum:hover a {
-      color: white;
-    }
-    .day a {
-      text-decoration: none;
-      color: #2b2c30;
-    }
-    .day:hover {
-      background: #97637c;
-      color: white;
-    }
-    .day:hover a {
-      color: white;
-    }
-    .day.today {
-      background: #97637c;
-      color: white;
-      font-weight: bold;
-    }
-    .day.today a {
-      color: white;
-    }
-    .day.weekend {
-      background: #E9DDE3; /* subtle weekend shading */
-    }
+    .weekday { font-weight: bold; background: #f0f0f0; }
+    .weeknum { font-weight: bold; background: #fafafa; text-align: center; }
+    .weeknum a { text-decoration: none; color: #0070f3; }
+    .weeknum:hover { background: #0070f3; }
+    .weeknum:hover a { color: white; }
+    .day a { text-decoration: none; color: #333; }
+    .day:hover { background: #0070f3; color: white; }
+    .day:hover a { color: white; }
+    .day.today { background: #0070f3; color: white; font-weight: bold; }
+    .day.today a { color: white; }
+    .day.weekend { background: #f9f2f2; }   /* weekends */
+    .day.weekday { background: #f5f9ff; }   /* weekdays */
     .month-header {
-      font-size: 1.5em;
-      margin: 20px 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 20px;
+      font-size: 1.5em; margin: 20px 0; display: flex;
+      justify-content: center; align-items: center; gap: 20px;
     }
-    .month-header a {
-      text-decoration: none;
-      color: #d79d31;
-    }
+    .month-header a { text-decoration: none; color: #0070f3; }
     .nav-btn {
-      cursor: pointer;
-      font-size: 1.2em;
-      padding: 5px 10px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      background: #f9f9f9;
+      cursor: pointer; font-size: 1.2em; padding: 5px 10px;
+      border: 1px solid #ccc; border-radius: 4px; background: #f9f9f9;
     }
-    .nav-btn:hover {
-      background: #e0e0e0;
-    }
+    .nav-btn:hover { background: #e0e0e0; }
     .today-btn {
-      cursor: pointer;
-      font-size: 1em;
-      padding: 5px 15px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      background: #f0f0f0;
+      cursor: pointer; font-size: 1em; padding: 5px 15px;
+      border: 1px solid #ccc; border-radius: 4px; background: #f0f0f0;
       margin-left: 10px;
     }
-    .today-btn:hover {
-      background: #0070f3;
-      color: white;
-    }
+    .today-btn:hover { background: #0070f3; color: white; }
   </style>
 </head>
 <body>
@@ -122,14 +68,12 @@
       return `${year}-${m}-${d}`;
     }
 
-    // ISO week number calculation (weeks start Monday, Thursday rule)
     function getWeekNumber(date) {
-      const tempDate = new Date(date.getTime());
-      tempDate.setHours(0,0,0,0);
-      tempDate.setDate(tempDate.getDate() + 3 - ((tempDate.getDay() + 6) % 7));
-      const week1 = new Date(tempDate.getFullYear(),0,4);
-      return 1 + Math.round(((tempDate.getTime() - week1.getTime()) / 86400000
-        - 3 + ((week1.getDay() + 6) % 7)) / 7);
+      const temp = new Date(date.getTime());
+      temp.setHours(0,0,0,0);
+      temp.setDate(temp.getDate() + 3 - ((temp.getDay() + 6) % 7));
+      const week1 = new Date(temp.getFullYear(), 0, 4);
+      return 1 + Math.round(((temp - week1) / 86400000 - 3 + ((week1.getDay() + 6) % 7)) / 7);
     }
 
     function renderCalendar(date) {
@@ -143,33 +87,33 @@
 
       const weekdays = ['Wk','Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
       weekdays.forEach(day => {
-        const weekdayCell = document.createElement('div');
-        weekdayCell.className = day === 'Wk' ? 'weeknum' : 'weekday';
-        weekdayCell.textContent = day;
-        calendarEl.appendChild(weekdayCell);
+        const cell = document.createElement('div');
+        cell.className = day === 'Wk' ? 'weeknum' : 'weekday';
+        cell.textContent = day;
+        calendarEl.appendChild(cell);
       });
 
-      const firstDay = new Date(year, month, 1).getDay(); // 0=Sun ... 6=Sat
+      const firstDay = new Date(year, month, 1).getDay();
       const daysInMonth = new Date(year, month+1, 0).getDate();
 
       let dayCounter = 1;
       let started = false;
+      let rowIndex = 0;
+
+      const firstSundayOfGrid = new Date(year, month, 1 - firstDay);
 
       while (dayCounter <= daysInMonth) {
-        // Compute the Monday of the current week row (ISO week start)
-        // Use the first real day of this row (dayCounter) to derive week start,
-        // then back up to Monday even if it falls in the previous month.
-        const rowFirstDate = new Date(year, month, dayCounter);
-        const dayOfWeek = rowFirstDate.getDay(); // 0=Sun..6=Sat
-        const mondayOffset = (dayOfWeek + 6) % 7; // 0 if Monday, 6 if Sunday
-        const weekStartDate = new Date(rowFirstDate);
-        weekStartDate.setDate(rowFirstDate.getDate() - mondayOffset);
+        const sundayOfRow = new Date(firstSundayOfGrid);
+        sundayOfRow.setDate(firstSundayOfGrid.getDate() + rowIndex * 7);
+        const mondayOfRow = new Date(sundayOfRow);
+        mondayOfRow.setDate(sundayOfRow.getDate() + 1);
 
         const weekNumCell = document.createElement('div');
         weekNumCell.className = 'weeknum';
         const weekLink = document.createElement('a');
-        weekLink.textContent = getWeekNumber(weekStartDate);
-        weekLink.href = `${notionBase}${weekStartDate.getFullYear()}-W${getWeekNumber(weekStartDate)}`;
+        const isoWeek = getWeekNumber(mondayOfRow);
+        weekLink.textContent = isoWeek;
+        weekLink.href = `${notionBase}${mondayOfRow.getFullYear()}-W${isoWeek}`;
         weekNumCell.appendChild(weekLink);
         calendarEl.appendChild(weekNumCell);
 
@@ -188,17 +132,16 @@
             dayCell.appendChild(dayLink);
 
             const today = new Date();
-            if (
-              dayCounter === today.getDate() &&
-              month === today.getMonth() &&
-              year === today.getFullYear()
-            ) {
+            if (dayCounter === today.getDate() &&
+                month === today.getMonth() &&
+                year === today.getFullYear()) {
               dayCell.classList.add('today');
             }
 
-            // Weekend styling: Sun (0) and Sat (6)
             if (dow === 0 || dow === 6) {
               dayCell.classList.add('weekend');
+            } else {
+              dayCell.classList.add('weekday');
             }
 
             calendarEl.appendChild(dayCell);
@@ -209,23 +152,13 @@
             calendarEl.appendChild(emptyCell);
           }
         }
+        rowIndex++;
       }
     }
 
-    function prevMonth() {
-      currentDate.setMonth(currentDate.getMonth() - 1);
-      renderCalendar(currentDate);
-    }
-
-    function nextMonth() {
-      currentDate.setMonth(currentDate.getMonth() + 1);
-      renderCalendar(currentDate);
-    }
-
-    function goToday() {
-      currentDate = new Date();
-      renderCalendar(currentDate);
-    }
+    function prevMonth() { currentDate.setMonth(currentDate.getMonth() - 1); renderCalendar(currentDate); }
+    function nextMonth() { currentDate.setMonth(currentDate.getMonth() + 1); renderCalendar(currentDate); }
+    function goToday() { currentDate = new Date(); renderCalendar(currentDate); }
 
     renderCalendar(currentDate);
   </script>
