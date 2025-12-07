@@ -16,34 +16,34 @@
       padding: 10px; border: 1px solid #ccc; border-radius: 4px;
       transition: background 0.2s, color 0.2s;
     }
-    .weekday { font-weight: bold; background: #f0f0f0; }
-    .weeknum { font-weight: bold; background: #fafafa; text-align: center; }
-    .weeknum a { text-decoration: none; color: #0070f3; }
-    .weeknum:hover { background: #0070f3; }
+    .weekday { font-weight: bold; background: #d5d5d7; }
+    .weeknum { font-weight: bold; background: #f0efeb; text-align: center; }
+    .weeknum a { text-decoration: none; color: #2a5d69; }
+    .weeknum:hover { background: #2a5d69; }
     .weeknum:hover a { color: white; }
     .day a { text-decoration: none; color: #333; }
-    .day:hover { background: #0070f3; color: white; }
+    .day:hover { background: #97637c; color: white; }
     .day:hover a { color: white; }
-    .day.today { background: #a867a4; color: white; font-weight: bold; }
+    .day.today { background: #97637c; color: white; font-weight: bold; }
     .day.today a { color: white; }
-    .day.weekend { background: #f9f2f2; font-weight: bold;}   /* weekends */
-    .day.weekday { background: #f5f9ff; }   /* weekdays */
+    .day.weekend { background: #ebd8dc; font-weight: bold;}   /* weekends */
+    .day.weekday { background: #f0efeb; }   /* weekdays */
     .month-header {
       font-size: 1.5em; margin: 20px 0; display: flex;
       justify-content: center; align-items: center; gap: 20px;
     }
-    .month-header a { text-decoration: none; color: #0070f3; }
+    .month-header a { text-decoration: none; color: #d79d31; }
     .nav-btn {
       cursor: pointer; font-size: 1.2em; padding: 5px 10px;
-      border: 1px solid #ccc; border-radius: 4px; background: #f9f9f9;
+      border: 1px solid #ccc; border-radius: 4px; background: #f0efeb;
     }
-    .nav-btn:hover { background: #e0e0e0; }
+    .nav-btn:hover { background: #a793ac; }
     .today-btn {
       cursor: pointer; font-size: 1em; padding: 5px 15px;
-      border: 1px solid #ccc; border-radius: 4px; background: #f0f0f0;
+      border: 1px solid #ccc; border-radius: 4px; background: #d5d5d7;
       margin-left: 10px;
     }
-    .today-btn:hover { background: #0070f3; color: white; }
+    .today-btn:hover { background: #a793ac; color: white; }
   </style>
 </head>
 <body>
@@ -60,7 +60,7 @@
     const monthLink = document.getElementById('month-link');
     let currentDate = new Date();
 
-    const notionBase = "https://www.notion.so/calendar/";
+    const notionBase = "https://www.notion.so/Journal/";
 
     function formatDate(year, month, day) {
       const m = String(month).padStart(2, '0');
@@ -88,7 +88,8 @@
       const weekdays = ['Wk','Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
       weekdays.forEach(day => {
         const cell = document.createElement('div');
-        cell.className = day === 'Wk' ? 'weeknum' : 'weekday';
+        // ✅ Use 'weekday' class for all headers, including 'Wk'
+        cell.className = 'weekday';
         cell.textContent = day;
         calendarEl.appendChild(cell);
       });
