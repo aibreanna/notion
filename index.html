@@ -84,7 +84,7 @@
   <div class="calendar" id="calendar"></div>
 
   <script>
-  const notionApiBase = "/api/getNotionPage"; // backend endpoint
+  const notionApiBase = "https://notion-calendar-widget-eight.vercel.app/api/getNotionPage"; // backend endpoint
 
   async function getNotionPageLink(dateString, type) {
     const response = await fetch(`${notionApiBase}?date=${dateString}&type=${type}`);
