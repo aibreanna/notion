@@ -48,6 +48,16 @@
       margin-left: 10px;
     }
     .today-btn:hover { background: #a793ac; color: white; border: 1px solid #d79d31; }
+    
+    /* Highlight rollover weeks (weeks that belong to the next year) */
+    .weeknum.rollover {
+      background-color: #ffeeba;   /* soft amber highlight */
+      border: 1px solid #f0ad4e;   /* subtle orange border */
+      border-radius: 4px;
+      font-weight: bold;
+      color: #8a6d3b;              /* darker text for contrast */
+      padding: 4px 6px;
+    }
   </style>
 </head>
 <body>
@@ -90,12 +100,14 @@
     return `${year}-${m}-${d}`;
   }
 
-  function getWeekNumber(date) {
-    const temp = new Date(date.getTime());
-    temp.setHours(0,0,0,0);
-    temp.setDate(temp.getDate() + 3 - ((temp.getDay() + 6) % 7));
-    const week1 = new Date(temp.getFullYear(), 0, 4);
-    return 1 + Math.round(((temp - week1) / 86400000 - 3 + ((week1.getDay() + 6) % 7)) / 7);
+  function getISOWeekYearAndNumber(date) {
+    const tmp = new Date(date.valueOf());
+    // Set to nearest Thursday: current date + 4 - current day number
+    tmp.setDate(tmp.getDate() + 4 - (tmp.getDay() || 7));
+    const yearStart = new Date(tmp.getFullYear(), 0, 1);
+    const weekNumber = Math.ceil((((tmp - yearStart) / 86400000) + 1) / 7);
+    const weekYear = tmp.getFullYear();
+    return { weekYear, weekNumber };
   }
 
   async function renderCalendar(date) {
@@ -130,8 +142,8 @@
       const mondayOfRow = new Date(sundayOfRow);
       mondayOfRow.setDate(sundayOfRow.getDate() + 1);
   
-      const isoWeek = getWeekNumber(mondayOfRow);
-      const weekString = `${year}-W${isoWeek}`;
+      const { weekYear, weekNumber } = getISOWeekYearAndNumber(mondayOfRow);
+      const weekString = `${weekYear}-W${weekNumber}`;
       nameStrings.push(weekString);
   
       for (let dow = 0; dow < 7; dow++) {
@@ -177,20 +189,27 @@
       const sundayOfRow = new Date(firstSundayOfGrid);
       sundayOfRow.setDate(firstSundayOfGrid.getDate() + rowIndex * 7);
       const mondayOfRow = new Date(sundayOfRow);
-      mondayOfRow.setDate(sundayOfRow.getDate() + 1);
-  
-      const isoWeek = getWeekNumber(mondayOfRow);
-      const weekString = `${year}-W${isoWeek}`;
-  
+      mondayOfRow.setDate(sundayOfRow.getDate() + 1); 
+ 
       // Weekly cell
+      const { weekYear, weekNumber } = getISOWeekYearAndNumber(mondayOfRow);
+      const weekString = `${weekYear}-W${weekNumber}`;
+      
       const weekNumCell = document.createElement('div');
       weekNumCell.className = 'weeknum';
+      
       const weekLink = document.createElement('a');
       const weekUrl = results[weekString];
-      weekLink.textContent = weekUrl === "ERROR" ? `${isoWeek} ⚠️` : isoWeek;
+      
+      // Show week number, and optionally the year if it differs from the current year
+      weekLink.textContent = weekUrl === "ERROR"
+        ? `W${weekNumber} ⚠️`
+        : (weekYear !== year ? `W${weekNumber} (${weekYear})` : `W${weekNumber}`);
+      
       weekLink.href = weekUrl === "ERROR" ? "#" : weekUrl;
       weekLink.target = "_blank";
       weekLink.rel = "noopener noreferrer";
+      
       weekNumCell.appendChild(weekLink);
       calendarEl.appendChild(weekNumCell);
   
@@ -224,7 +243,11 @@
           } else {
             dayCell.classList.add('weekday');
           }
-  
+
+          if (weekYear !== year) {
+            weekNumCell.classList.add('rollover');
+          }
+
           calendarEl.appendChild(dayCell);
           dayCounter++;
         } else {
