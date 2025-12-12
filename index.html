@@ -1,4 +1,66 @@
-<script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Dynamic Notion Calendar Widget</title>
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; font-size: small; }
+    .calendar {
+      display: grid;
+      grid-template-columns: 40px repeat(7, 1fr);
+      gap: 2px;
+      max-width: 400px;
+      margin: auto;
+    }
+    .day, .empty, .weekday, .weeknum {
+      padding: 10px; border: 1px solid #ccc; border-radius: 4px;
+      transition: background 0.2s, color 0.2s;
+    }
+    .weekday { font-weight: bold; background: #d5d5d7; }
+    .weeknum { font-weight: bold; background: #f7f7f5; text-align: center; }
+    .weeknum a { text-decoration: none; color: #2a5d69; }
+    .weeknum:hover { background: #2a5d69; }
+    .weeknum:hover a { color: white; }
+    .day a { text-decoration: none; color: #333; }
+    .day.weekday { background: #f0efeb; }
+    .day.weekend { font-weight: bold; background: #ebd8dc; }
+    .day.weekday:hover, .day.weekend:hover {
+      background: #97637c; color: white; border: 1px solid #d79d31;
+    }
+    .day.weekday:hover a, .day.weekend:hover a {
+      color: white; font-weight: bold;
+    }
+    .day.today { background: #a793ac; color: white !important; font-weight: bold; }
+    .day.today a { color: white !important; }
+    .month-header {
+      font-size: 1.5em; margin: 20px 0; display: flex;
+      justify-content: center; align-items: center; gap: 20px;
+    }
+    .month-header a { text-decoration: none; color: #d79d31; }
+    .nav-btn {
+      cursor: pointer; font-size: 1.2em; padding: 5px 10px;
+      border: 1px solid #ccc; border-radius: 4px; background: #f0efeb;
+    }
+    .nav-btn:hover { background: #a793ac; }
+    .today-btn {
+      cursor: pointer; font-size: 1em; padding: 5px 15px;
+      border: 1px solid #ccc; border-radius: 4px; background: #d5d5d7;
+      margin-left: 10px;
+    }
+    .today-btn:hover { background: #a793ac; color: white; border: 1px solid #d79d31; }
+  </style>
+</head>
+<body>
+  <div class="month-header">
+    <span class="nav-btn" onclick="prevMonth()">&#8592;</span>
+    <a id="month-link" href="#" target="_blank" rel="noopener noreferrer">Month</a>
+    <span class="nav-btn" onclick="nextMonth()">&#8594;</span>
+    <button class="today-btn" onclick="goToday()">Today</button>
+  </div>
+ <div id="loading" style="margin:10px; font-style:italic; color:#666;">
+ </div> <div class="calendar" id="calendar"></div>
+
+  <script>
   const notionApiBase = "https://notion-calendar-widget-eight.vercel.app/api/getNotionPage"; // backend endpoint
 
   const calendarEl = document.getElementById('calendar');
@@ -204,3 +266,5 @@ async function renderCalendar(date) {
   // 🔗 Initial render
   renderCalendar(currentDate);
 </script>
+</body>
+</html>
