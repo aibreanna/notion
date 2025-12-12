@@ -25,92 +25,145 @@
     return 1 + Math.round(((temp - week1) / 86400000 - 3 + ((week1.getDay() + 6) % 7)) / 7);
   }
 
-  async function renderCalendar(date) {
-    calendarEl.innerHTML = '';
-    const year = date.getFullYear();
-    const month = date.getMonth();
-    const monthName = date.toLocaleString('default', { month: 'long' });
+async function renderCalendar(date) {
+  const loadingEl = document.getElementById('loading');
+  loadingEl.textContent = "Fetching Notion links… ⏳";
+  calendarEl.innerHTML = '';
 
-    monthLink.textContent = `${monthName} ${year}`;
-    const monthDateStr = `${year}-${String(month+1).padStart(2,'0')}`;
-    monthLink.href = await getNotionPageLink(monthDateStr, "Monthly");
+  const year = date.getFullYear();
+  const month = date.getMonth();
+  const monthName = date.toLocaleString('default', { month: 'long' });
 
-    const weekdays = ['Wk','Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-    weekdays.forEach(day => {
-      const cell = document.createElement('div');
-      cell.className = 'weekday';
-      cell.textContent = day;
-      calendarEl.appendChild(cell);
-    });
+  monthLink.textContent = `${monthName} ${year}`;
 
-    const firstDay = new Date(year, month, 1).getDay();
-    const daysInMonth = new Date(year, month+1, 0).getDate();
+  // --- Build all fetch promises ---
+  const promises = [];
 
-    let dayCounter = 1;
-    let started = false;
-    let rowIndex = 0;
-    const firstSundayOfGrid = new Date(year, month, 1 - firstDay);
+  // Monthly link
+  const monthDateStr = `${year}-${String(month+1).padStart(2,'0')}`;
+  promises.push(getNotionPageLink(monthDateStr, "Monthly"));
 
-    while (dayCounter <= daysInMonth) {
-      const sundayOfRow = new Date(firstSundayOfGrid);
-      sundayOfRow.setDate(firstSundayOfGrid.getDate() + rowIndex * 7);
-      const mondayOfRow = new Date(sundayOfRow);
-      mondayOfRow.setDate(sundayOfRow.getDate() + 1);
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month+1, 0).getDate();
 
-      const isoWeek = getWeekNumber(mondayOfRow);
+  let dayCounter = 1;
+  let started = false;
+  let rowIndex = 0;
+  const firstSundayOfGrid = new Date(year, month, 1 - firstDay);
 
-      const weekNumCell = document.createElement('div');
-      weekNumCell.className = 'weeknum';
-      const weekLink = document.createElement('a');
-      weekLink.textContent = isoWeek;
-      weekLink.href = await getNotionPageLink(`${year}-W${isoWeek}`, "Weekly");
-      weekLink.target = "_blank";
-      weekLink.rel = "noopener noreferrer";
-      weekNumCell.appendChild(weekLink);
-      calendarEl.appendChild(weekNumCell);
+  const weekRequests = [];
+  const dayRequests = [];
 
-      for (let dow = 0; dow < 7; dow++) {
-        if (!started && dow < firstDay) {
-          const emptyCell = document.createElement('div');
-          emptyCell.className = 'empty';
-          calendarEl.appendChild(emptyCell);
-        } else if (dayCounter <= daysInMonth) {
-          started = true;
-          const dayCell = document.createElement('div');
-          dayCell.className = 'day';
-          const dayLink = document.createElement('a');
-          dayLink.textContent = dayCounter;
+  while (dayCounter <= daysInMonth) {
+    const sundayOfRow = new Date(firstSundayOfGrid);
+    sundayOfRow.setDate(firstSundayOfGrid.getDate() + rowIndex * 7);
+    const mondayOfRow = new Date(sundayOfRow);
+    mondayOfRow.setDate(sundayOfRow.getDate() + 1);
 
-          const dateStr = formatDate(year, month+1, dayCounter);
-          dayLink.href = await getNotionPageLink(dateStr, "Daily");
-          dayLink.target = "_blank";
-          dayLink.rel = "noopener noreferrer";
-          dayCell.appendChild(dayLink);
+    const isoWeek = getWeekNumber(mondayOfRow);
+    weekRequests.push(getNotionPageLink(`${year}-W${isoWeek}`, "Weekly"));
 
-          const today = new Date();
-          if (dayCounter === today.getDate() &&
-              month === today.getMonth() &&
-              year === today.getFullYear()) {
-            dayCell.classList.add('today');
-          }
-
-          if (dow === 0 || dow === 6) {
-            dayCell.classList.add('weekend');
-          } else {
-            dayCell.classList.add('weekday');
-          }
-
-          calendarEl.appendChild(dayCell);
-          dayCounter++;
-        } else {
-          const emptyCell = document.createElement('div');
-          emptyCell.className = 'empty';
-          calendarEl.appendChild(emptyCell);
-        }
+    for (let dow = 0; dow < 7; dow++) {
+      if (!started && dow < firstDay) {
+        // empty cell, no fetch
+      } else if (dayCounter <= daysInMonth) {
+        const dateStr = formatDate(year, month+1, dayCounter);
+        dayRequests.push(getNotionPageLink(dateStr, "Daily"));
+        dayCounter++;
       }
-      rowIndex++;
     }
+    rowIndex++;
   }
+
+  // Add weekly + daily requests to promises
+  promises.push(...weekRequests, ...dayRequests);
+
+  // --- Run all fetches in parallel ---
+  const results = await Promise.all(promises);
+
+  // --- Assign results back ---
+  let resultIndex = 0;
+
+  // Monthly
+  monthLink.href = results[resultIndex++];
+  monthLink.target = "_blank";
+  monthLink.rel = "noopener noreferrer";
+
+  // Weekday headers
+  const weekdays = ['Wk','Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  weekdays.forEach(day => {
+    const cell = document.createElement('div');
+    cell.className = 'weekday';
+    cell.textContent = day;
+    calendarEl.appendChild(cell);
+  });
+
+  dayCounter = 1;
+  started = false;
+  rowIndex = 0;
+
+  while (dayCounter <= daysInMonth) {
+    const sundayOfRow = new Date(firstSundayOfGrid);
+    sundayOfRow.setDate(firstSundayOfGrid.getDate() + rowIndex * 7);
+    const mondayOfRow = new Date(sundayOfRow);
+    mondayOfRow.setDate(sundayOfRow.getDate() + 1);
+
+    const isoWeek = getWeekNumber(mondayOfRow);
+
+    // Weekly cell
+    const weekNumCell = document.createElement('div');
+    weekNumCell.className = 'weeknum';
+    const weekLink = document.createElement('a');
+    weekLink.textContent = isoWeek;
+    weekLink.href = results[resultIndex++];
+    weekLink.target = "_blank";
+    weekLink.rel = "noopener noreferrer";
+    weekNumCell.appendChild(weekLink);
+    calendarEl.appendChild(weekNumCell);
+
+    for (let dow = 0; dow < 7; dow++) {
+      if (!started && dow < firstDay) {
+        const emptyCell = document.createElement('div');
+        emptyCell.className = 'empty';
+        calendarEl.appendChild(emptyCell);
+      } else if (dayCounter <= daysInMonth) {
+        started = true;
+        const dayCell = document.createElement('div');
+        dayCell.className = 'day';
+        const dayLink = document.createElement('a');
+        dayLink.textContent = dayCounter;
+        dayLink.href = results[resultIndex++];
+        dayLink.target = "_blank";
+        dayLink.rel = "noopener noreferrer";
+        dayCell.appendChild(dayLink);
+
+        const today = new Date();
+        if (dayCounter === today.getDate() &&
+            month === today.getMonth() &&
+            year === today.getFullYear()) {
+          dayCell.classList.add('today');
+        }
+
+        if (dow === 0 || dow === 6) {
+          dayCell.classList.add('weekend');
+        } else {
+          dayCell.classList.add('weekday');
+        }
+
+        calendarEl.appendChild(dayCell);
+        dayCounter++;
+      } else {
+        const emptyCell = document.createElement('div');
+        emptyCell.className = 'empty';
+        calendarEl.appendChild(emptyCell);
+      }
+    }
+    rowIndex++;
+  }
+
+  // --- Clear loading indicator ---
+  loadingEl.textContent = "";
+}
 
   function prevMonth() { currentDate.setMonth(currentDate.getMonth() - 1); renderCalendar(currentDate); }
   function nextMonth() { currentDate.setMonth(currentDate.getMonth() + 1); renderCalendar(currentDate); }
